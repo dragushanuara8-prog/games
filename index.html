@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Catcher — Choose Your Character</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ── Animated starfield ── */
+        .stars {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--dur) ease-in-out infinite;
+            animation-delay: var(--delay);
+            opacity: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50%      { opacity: 1;   transform: scale(1.6); }
+        }
+
+        /* ── Shooting stars ── */
+        .shooting-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 6px 2px rgba(255,255,255,0.6);
+            animation: shoot var(--travel) linear infinite;
+            animation-delay: var(--sdelay);
+            opacity: 0;
+        }
+
+        .shooting-star::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 1.5px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.7), transparent);
+        }
+
+        @keyframes shoot {
+            0%   { opacity: 0; transform: translate(0, 0) rotate(-25deg); }
+            5%   { opacity: 1; }
+            15%  { opacity: 0; transform: translate(-400px, 200px) rotate(-25deg); }
+            100% { opacity: 0; transform: translate(-400px, 200px) rotate(-25deg); }
+        }
+
+        /* ── Main card ── */
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(15, 20, 40, 0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 50px 60px 44px;
+            text-align: center;
+            max-width: 700px;
+            width: 92%;
+            box-shadow:
+                0 0 80px rgba(80, 120, 255, 0.08),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: floatIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .title {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #a8d8ff, #7eb8ff, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: rgba(180, 200, 240, 0.7);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        /* ── Characters row ── */
+        .characters {
+            display: flex;
+            gap: 36px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 38px;
+        }
+
+        .char-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+
+        .char-option:hover {
+            transform: translateY(-6px);
+        }
+
+        .char-option:active {
+            transform: scale(0.96);
+        }
+
+        .char-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .char-option:hover .char-circle {
+            transform: scale(1.06);
+        }
+
+        /* Explorer — cyan / ice blue */
+        .char-explorer .char-circle {
+            background: radial-gradient(circle at 40% 35%, #5ce0fe, #0d7cbf);
+            box-shadow: 0 0 30px rgba(10, 180, 240, 0.35);
+        }
+
+        /* Scout — emerald green */
+        .char-scout .char-circle {
+            background: radial-gradient(circle at 40% 35%, #6fee8a, #1a8a40);
+            box-shadow: 0 0 30px rgba(40, 210, 100, 0.35);
+        }
+
+        /* Pilot — amber / gold */
+        .char-pilot .char-circle {
+            background: radial-gradient(circle at 40% 35%, #fbbf24, #d97706);
+            box-shadow: 0 0 30px rgba(250, 170, 30, 0.35);
+        }
+
+        /* Selected ring */
+        .char-option.selected .char-circle {
+            border-color: white;
+            box-shadow:
+                0 0 0 5px rgba(255, 255, 255, 0.15),
+                0 0 50px var(--glow-color, rgba(255,255,255,0.4));
+            transform: scale(1.08);
+        }
+
+        .char-explorer.selected .char-circle { --glow-color: rgba(10, 200, 255, 0.55); }
+        .char-scout.selected .char-circle    { --glow-color: rgba(50, 230, 120, 0.55); }
+        .char-pilot.selected .char-circle    { --glow-color: rgba(255, 180, 30, 0.55); }
+
+        .char-option.selected .char-circle::after {
+            content: '✓';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0b1120;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popCheck 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popCheck {
+            from { transform: scale(0); }
+            to   { transform: scale(1); }
+        }
+
+        .char-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: rgba(220, 230, 255, 0.9);
+            transition: color 0.25s;
+        }
+
+        .char-option.selected .char-name {
+            color: white;
+        }
+
+        .char-desc {
+            font-size: 0.78rem;
+            color: rgba(160, 180, 210, 0.65);
+            margin-top: -8px;
+            max-width: 120px;
+            line-height: 1.4;
+        }
+
+        /* ── Start button ── */
+        .btn-start {
+            font-family: inherit;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 16px 52px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-start:disabled {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.25);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-start:not(:disabled) {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+            color: white;
+            box-shadow:
+                0 0 30px rgba(139, 92, 246, 0.4),
+                0 6px 24px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-start:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 0 45px rgba(139, 92, 246, 0.55),
+                0 10px 30px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn-start:not(:disabled):active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        /* ── Pulse ring on active button ── */
+        .btn-start:not(:disabled)::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 54px;
+            border: 2px solid rgba(168, 85, 247, 0.5);
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        @keyframes pulseRing {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50%      { opacity: 1; transform: scale(1.04); }
+        }
+
+        /* ── Hint text ── */
+        .hint {
+            font-size: 0.8rem;
+            color: rgba(180, 200, 240, 0.5);
+            margin-top: 16px;
+            transition: opacity 0.3s;
+        }
+
+        .hint.hidden {
+            opacity: 0;
+        }
+
+        /* ── Level Select ── */
+        .level-container {
+            display: none;
+        }
+
+        .level-container.active {
+            display: block;
+        }
+
+        .levels {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 38px;
+        }
+
+        .level-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+
+        .level-option:hover {
+            transform: translateY(-6px);
+        }
+
+        .level-option:active {
+            transform: scale(0.96);
+        }
+
+        .level-planet {
+            width: 125px;
+            height: 125px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .level-option:hover .level-planet {
+            transform: scale(1.06);
+        }
+
+        /* Planet ring */
+        .level-planet::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: rgba(255,255,255,0.2);
+            border-right-color: rgba(255,255,255,0.08);
+            transform: rotate(-20deg);
+            transition: all 0.3s ease;
+        }
+
+        .level-option:hover .level-planet::before {
+            border-top-color: rgba(255,255,255,0.45);
+            transform: rotate(-10deg);
+        }
+
+        /* Level 1 — icy blue */
+        .level-1 .level-planet {
+            background: radial-gradient(circle at 35% 30%, #a5f0fc, #3b82b6, #1e3a5f);
+            box-shadow: 0 0 35px rgba(59, 180, 240, 0.3);
+        }
+
+        /* Level 2 — ember orange */
+        .level-2 .level-planet {
+            background: radial-gradient(circle at 35% 30%, #fbbf7c, #e87a2b, #7c2d12);
+            box-shadow: 0 0 35px rgba(240, 130, 50, 0.3);
+        }
+
+        /* Level 3 — nebula purple */
+        .level-3 .level-planet {
+            background: radial-gradient(circle at 35% 30%, #d8b4fe, #9333ea, #4c1d95);
+            box-shadow: 0 0 35px rgba(160, 80, 240, 0.3);
+        }
+
+        .level-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            z-index: 1;
+        }
+
+        /* Selected planet */
+        .level-option.selected .level-planet {
+            border-color: white;
+            box-shadow: 0 0 0 5px rgba(255,255,255,0.12), 0 0 55px var(--lglow);
+            transform: scale(1.08);
+        }
+
+        .level-1.selected .level-planet { --lglow: rgba(80, 200, 255, 0.55); }
+        .level-2.selected .level-planet { --lglow: rgba(255, 160, 60, 0.55); }
+        .level-3.selected .level-planet { --lglow: rgba(180, 90, 255, 0.55); }
+
+        .level-option.selected .level-planet::after {
+            content: '✓';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0b1120;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            animation: popCheck 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .level-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: rgba(220, 230, 255, 0.9);
+            transition: color 0.25s;
+        }
+
+        .level-option.selected .level-name {
+            color: white;
+        }
+
+        .level-desc {
+            font-size: 0.78rem;
+            color: rgba(160, 180, 210, 0.65);
+            margin-top: -8px;
+            max-width: 130px;
+            line-height: 1.4;
+        }
+
+        /* ── Bottom row (Back + Play) ── */
+        .bottom-row {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-back {
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 12px 36px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            background: rgba(255,255,255,0.05);
+            color: rgba(200, 215, 240, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .btn-back:active {
+            transform: scale(0.96);
+        }
+
+        .btn-play {
+            font-family: inherit;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-play:disabled {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.25);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-play:not(:disabled) {
+            background: linear-gradient(135deg, #f59e0b, #ef6c00, #dc2626);
+            color: white;
+            box-shadow:
+                0 0 30px rgba(245, 158, 11, 0.4),
+                0 6px 24px rgba(239, 108, 0, 0.35);
+        }
+
+        .btn-play:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 0 45px rgba(245, 158, 11, 0.55),
+                0 10px 30px rgba(239, 108, 0, 0.45);
+        }
+
+        .btn-play:not(:disabled):active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .btn-play:not(:disabled)::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 54px;
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        /* ── Gameplay screen ── */
+        .gameplay {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            display: none;
+            cursor: crosshair;
+            overflow: hidden;
+        }
+        .gameplay.active { display: block; }
+
+        .hud {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 28px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .hud > * { pointer-events: auto; }
+
+        .score-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: rgba(220,230,255,0.9);
+            background: rgba(10,15,30,0.7);
+            backdrop-filter: blur(8px);
+            padding: 8px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 0.04em;
+        }
+        .score-display span { color: #facc15; }
+
+        .timer-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: rgba(220,230,255,0.9);
+            background: rgba(10,15,30,0.7);
+            backdrop-filter: blur(8px);
+            padding: 8px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 0.04em;
+        }
+        .timer-display.urgent { color: #ef4444; animation: pulseUrgent 0.5s ease-in-out infinite; }
+        @keyframes pulseUrgent {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.12); }
+        }
+
+        .btn-leave {
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 10px 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            background: rgba(255,255,255,0.06);
+            color: rgba(200,215,240,0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .btn-leave:hover { background: rgba(255,255,255,0.14); color: white; border-color: rgba(255,255,255,0.4); }
+
+        /* ── Targets ── */
+        .target {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            animation: targetIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            z-index: 15;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .target.fading {
+            opacity: 0;
+            transform: scale(0.3);
+            pointer-events: none;
+        }
+        @keyframes targetIn {
+            from { opacity: 0; transform: scale(0); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ── Particle burst ── */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFly var(--fly-dur, 0.5s) ease-out forwards;
+            z-index: 25;
+        }
+        @keyframes particleFly {
+            0%   { opacity: 1; transform: translate(0,0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+        }
+
+        .score-pop {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #facc15;
+            text-shadow: 0 0 12px rgba(250,204,21,0.7);
+            z-index: 30;
+            animation: scoreUp 0.8s ease-out forwards;
+        }
+        @keyframes scoreUp {
+            0%   { opacity: 1; transform: translateY(0) scale(0.5); }
+            40%  { opacity: 1; transform: translateY(-25px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1); }
+        }
+
+        /* ── Game Over overlay ── */
+        .gameover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(5,8,18,0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 40;
+            animation: fadeIn 0.5s ease;
+        }
+        .gameover-overlay.active { display: flex; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        .gameover-overlay h2 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .gameover-overlay h2.win-title {
+            background: linear-gradient(135deg, #4ade80, #a3e635, #facc15);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+        .gameover-overlay h2.lose-title {
+            background: linear-gradient(135deg, #94a3b8, #818cf8);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes shimmer {
+            0%,100% { filter: brightness(1); }
+            50%      { filter: brightness(1.3); }
+        }
+
+        .gameover-overlay .final-score {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+        .gameover-overlay .final-score.win-score {
+            color: #4ade80;
+            text-shadow: 0 0 40px rgba(74,222,128,0.5), 0 0 80px rgba(74,222,128,0.25);
+        }
+        .gameover-overlay .final-score.lose-score {
+            color: #a5b4fc;
+            text-shadow: 0 0 30px rgba(165,180,252,0.3);
+        }
+        .gameover-overlay .final-label {
+            font-size: 1rem;
+            color: rgba(180,200,240,0.6);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+        }
+        .gameover-buttons {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn-retry {
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 28px rgba(139,92,246,0.35);
+        }
+        .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(139,92,246,0.55); }
+
+        .btn-back-menu {
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 14px 32px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            background: rgba(255,255,255,0.05);
+            color: rgba(200,215,240,0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-back-menu:hover { background: rgba(255,255,255,0.12); color: white; }
+
+        .btn-next {
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 28px rgba(34,197,94,0.35);
+        }
+        .btn-next:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(34,197,94,0.55); }
+
+        /* ── Confetti ── */
+        .confetti {
+            position: absolute;
+            pointer-events: none;
+            z-index: 45;
+            animation: confettiFall var(--cf-dur, 2.5s) ease-in forwards;
+            animation-delay: var(--cf-delay, 0s);
+        }
+        @keyframes confettiFall {
+            0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translateY(var(--cf-y, -400px)) rotate(var(--cf-rot, 720deg)) scale(0.3); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .container   { padding: 32px 22px 30px; }
+            .title       { font-size: 1.8rem; }
+            .characters  { gap: 18px; }
+            .char-circle { width: 85px; height: 85px; font-size: 2.2rem; }
+            .btn-start   { padding: 14px 36px; font-size: 1rem; }
+            .levels      { gap: 16px; }
+            .level-planet{ width: 95px; height: 95px; }
+            .level-number{ font-size: 1.6rem; }
+            .bottom-row  { gap: 12px; }
+            .btn-play    { padding: 14px 32px; font-size: 1rem; }
+            .btn-back    { padding: 10px 24px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Animated starfield ── -->
+    <div class="stars" id="stars"></div>
+
+    <!-- ── Main card ── -->
+    <div class="container" id="charScreen">
+        <h1 class="title">Choose Your Character</h1>
+        <p class="subtitle">Star Catcher</p>
+
+        <div class="characters">
+            <!-- Explorer -->
+            <div class="char-option char-explorer" data-character="explorer" onclick="selectCharacter('explorer')">
+                <div class="char-circle">🧭</div>
+                <div class="char-name">Explorer</div>
+                <div class="char-desc">Fast &amp; curious — maps the unknown</div>
+            </div>
+
+            <!-- Scout -->
+            <div class="char-option char-scout" data-character="scout" onclick="selectCharacter('scout')">
+                <div class="char-circle">🌿</div>
+                <div class="char-name">Scout</div>
+                <div class="char-desc">Agile &amp; sharp — finds hidden stars</div>
+            </div>
+
+            <!-- Pilot -->
+            <div class="char-option char-pilot" data-character="pilot" onclick="selectCharacter('pilot')">
+                <div class="char-circle">🚀</div>
+                <div class="char-name">Pilot</div>
+                <div class="char-desc">Bold &amp; steady — charts the course</div>
+            </div>
+        </div>
+
+        <button class="btn-start" id="btnStart" disabled onclick="startGame()">Start Game</button>
+        <p class="hint" id="hint">Select a character to begin</p>
+    </div>
+
+    <!-- ── Level Select screen ── -->
+    <div class="container level-container" id="levelScreen">
+        <h1 class="title">Select Level to begin</h1>
+        <p class="subtitle" id="levelCharLabel">Star Catcher</p>
+
+        <div class="levels">
+            <div class="level-option level-1" onclick="selectLevel(1)">
+                <div class="level-planet"><span class="level-number">1</span></div>
+                <div class="level-name">Level 1</div>
+                <div class="level-desc">Nebula Drift — a gentle start</div>
+            </div>
+            <div class="level-option level-2" onclick="selectLevel(2)">
+                <div class="level-planet"><span class="level-number">2</span></div>
+                <div class="level-name">Level 2</div>
+                <div class="level-desc">Asteroid Field — watch your step</div>
+            </div>
+            <div class="level-option level-3" onclick="selectLevel(3)">
+                <div class="level-planet"><span class="level-number">3</span></div>
+                <div class="level-name">Level 3</div>
+                <div class="level-desc">Black Hole Run — full throttle</div>
+            </div>
+        </div>
+
+        <div class="bottom-row">
+            <button class="btn-back" onclick="goBack()">← Back</button>
+            <button class="btn-play" id="btnPlay" disabled onclick="playLevel()">Play Level</button>
+        </div>
+        <p class="hint" id="levelHint">Select a level to continue</p>
+    </div>
+
+    <!-- ── Gameplay screen ── -->
+    <div class="gameplay" id="gameplayScreen">
+        <!-- Embedded starfield -->
+        <div class="stars" id="gameStars"></div>
+
+        <!-- HUD -->
+        <div class="hud">
+            <div class="score-display">Score: <span id="scoreVal">0</span> / 100</div>
+            <div class="timer-display" id="timerVal">0:30</div>
+            <button class="btn-leave" onclick="leaveGame()">Leave</button>
+        </div>
+
+        <!-- Game Over overlay -->
+        <div class="gameover-overlay" id="gameoverOverlay">
+            <h2>Time's Up!</h2>
+            <div class="final-label">Final Score</div>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="gameover-buttons">
+                <button class="btn-retry" onclick="retryGame()">Play Again</button>
+                <button class="btn-back-menu" onclick="leaveGame()">Level Select</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ── Generate starfield ── */
+        const starsEl = document.getElementById('stars');
+        const STAR_COUNT = 160;
+
+        for (let i = 0; i < STAR_COUNT; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            const size = Math.random() * 2.8 + 0.8;
+            star.style.width  = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left   = Math.random() * 100 + '%';
+            star.style.top    = Math.random() * 100 + '%';
+            star.style.setProperty('--dur',   (Math.random() * 3 + 2) + 's');
+            star.style.setProperty('--delay', (Math.random() * 5) + 's');
+            starsEl.appendChild(star);
+        }
+
+        /* ── Generate shooting stars ── */
+        for (let i = 0; i < 4; i++) {
+            const shooter = document.createElement('div');
+            shooter.classList.add('shooting-star');
+            shooter.style.left   = (Math.random() * 60 + 30) + '%';
+            shooter.style.top    = (Math.random() * 40 + 5)  + '%';
+            shooter.style.setProperty('--travel', (Math.random() * 5 + 6) + 's');
+            shooter.style.setProperty('--sdelay', (Math.random() * 14 + i * 4) + 's');
+            starsEl.appendChild(shooter);
+        }
+
+        /* ── Character selection ── */
+        let selectedCharacter = null;
+
+        function selectCharacter(char) {
+            // Deselect all
+            document.querySelectorAll('.char-option').forEach(el => el.classList.remove('selected'));
+
+            if (selectedCharacter === char) {
+                // Toggle off
+                selectedCharacter = null;
+                updateButton();
+                return;
+            }
+
+            // Select new
+            selectedCharacter = char;
+            document.querySelector(`.char-option[data-character="${char}"]`).classList.add('selected');
+            updateButton();
+        }
+
+        function updateButton() {
+            const btn  = document.getElementById('btnStart');
+            const hint = document.getElementById('hint');
+
+            if (selectedCharacter) {
+                btn.disabled = false;
+                hint.classList.add('hidden');
+            } else {
+                btn.disabled = true;
+                hint.classList.remove('hidden');
+            }
+        }
+
+        function startGame() {
+            if (!selectedCharacter) return;
+
+            const container   = document.getElementById('charScreen');
+            const levelScreen = document.getElementById('levelScreen');
+            const label       = document.getElementById('levelCharLabel');
+            const names       = { explorer: 'Explorer', scout: 'Scout', pilot: 'Pilot' };
+
+            label.textContent = names[selectedCharacter];
+
+            // Fade out character select
+            container.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            container.style.opacity = '0';
+            container.style.transform = 'scale(1.05)';
+
+            setTimeout(() => {
+                container.style.display = 'none';
+                levelScreen.classList.add('active');
+                // Force reflow then animate in
+                levelScreen.offsetHeight;
+                levelScreen.style.animation = 'floatIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards';
+            }, 350);
+        }
+
+        /* ── Level selection ── */
+        let selectedLevel = null;
+
+        function selectLevel(lvl) {
+            document.querySelectorAll('.level-option').forEach(el => el.classList.remove('selected'));
+
+            if (selectedLevel === lvl) {
+                selectedLevel = null;
+                updatePlayButton();
+                return;
+            }
+
+            selectedLevel = lvl;
+            document.querySelector(`.level-option.level-${lvl}`).classList.add('selected');
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const btn  = document.getElementById('btnPlay');
+            const hint = document.getElementById('levelHint');
+            if (selectedLevel) {
+                btn.disabled = false;
+                hint.classList.add('hidden');
+            } else {
+                btn.disabled = true;
+                hint.classList.remove('hidden');
+            }
+        }
+
+        function goBack() {
+            const levelScreen = document.getElementById('levelScreen');
+            const container   = document.getElementById('charScreen');
+
+            // Clear level selection
+            selectedLevel = null;
+            document.querySelectorAll('.level-option').forEach(el => el.classList.remove('selected'));
+            updatePlayButton();
+
+            // Fade out level screen
+            levelScreen.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            levelScreen.style.opacity = '0';
+            levelScreen.style.transform = 'scale(0.95)';
+
+            setTimeout(() => {
+                levelScreen.classList.remove('active');
+                levelScreen.style.opacity = '';
+                levelScreen.style.transform = '';
+                levelScreen.style.transition = '';
+                levelScreen.style.animation = '';
+
+                container.style.display = '';
+                container.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                container.style.opacity = '0';
+                container.style.transform = 'scale(0.95)';
+                container.offsetHeight;
+                container.style.opacity = '1';
+                container.style.transform = 'scale(1)';
+            }, 350);
+        }
+
+        /* ── Generate embedded starfield for gameplay ── */
+        (function () {
+            const gs = document.getElementById('gameStars');
+            for (let i = 0; i < 100; i++) {
+                const s = document.createElement('div');
+                s.classList.add('star');
+                const sz = Math.random() * 2.5 + 0.7;
+                s.style.width  = sz + 'px';
+                s.style.height = sz + 'px';
+                s.style.left    = Math.random() * 100 + '%';
+                s.style.top     = Math.random() * 100 + '%';
+                s.style.setProperty('--dur',   (Math.random() * 3.5 + 2.5) + 's');
+                s.style.setProperty('--delay', (Math.random() * 4) + 's');
+                gs.appendChild(s);
+            }
+        })();
+
+        /* ── Gameplay engine ── */
+        let gameState = {
+            score: 0, timeLeft: 30, active: false,
+            spawnTimer: null, countdown: null
+        };
+
+        const TARGET_COLORS = [
+            { bg: 'radial-gradient(circle at 40% 35%, #5ce0fe, #0d7cbf)', glow: 'rgba(10,200,255,0.55)' },
+            { bg: 'radial-gradient(circle at 40% 35%, #6fee8a, #1a8a40)', glow: 'rgba(50,230,120,0.55)' },
+            { bg: 'radial-gradient(circle at 40% 35%, #fbbf24, #d97706)', glow: 'rgba(255,180,30,0.55)' },
+            { bg: 'radial-gradient(circle at 40% 35%, #d8b4fe, #9333ea)', glow: 'rgba(180,90,255,0.55)' },
+            { bg: 'radial-gradient(circle at 40% 35%, #f87171, #dc2626)', glow: 'rgba(255,80,80,0.55)' },
+        ];
+
+        function playLevel() {
+            if (!selectedLevel) return;
+
+            const levelScreen = document.getElementById('levelScreen');
+            levelScreen.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            levelScreen.style.opacity = '0';
+            levelScreen.style.transform = 'scale(1.05)';
+
+            setTimeout(() => {
+                levelScreen.classList.remove('active');
+                levelScreen.style.opacity = '';
+                levelScreen.style.transform = '';
+                levelScreen.style.transition = '';
+                levelScreen.style.animation = '';
+
+                const gp = document.getElementById('gameplayScreen');
+                gp.classList.add('active');
+                initGame();
+            }, 300);
+        }
+
+        function initGame() {
+            const gp = document.getElementById('gameplayScreen');
+            // Clear old targets
+            gp.querySelectorAll('.target, .particle, .score-pop').forEach(el => el.remove());
+
+            gameState.score = 0;
+            gameState.timeLeft = 30;
+            gameState.active = true;
+
+            document.getElementById('scoreVal').textContent = '0';
+            document.getElementById('timerVal').textContent = '0:30';
+            document.getElementById('timerVal').classList.remove('urgent');
+            document.getElementById('gameoverOverlay').classList.remove('active');
+
+            // Spawn interval scales with difficulty
+            const intervals = { 1: [1000,1500], 2: [700,1100], 3: [500,900] };
+            const [lo, hi] = intervals[selectedLevel] || intervals[1];
+            scheduleSpawn(lo, hi);
+
+            // Countdown every second
+            gameState.countdown = setInterval(() => {
+                gameState.timeLeft--;
+                const m = Math.floor(gameState.timeLeft / 60);
+                const s = gameState.timeLeft % 60;
+                const tEl = document.getElementById('timerVal');
+                tEl.textContent = m + ':' + String(s).padStart(2, '0');
+                if (gameState.timeLeft <= 5) tEl.classList.add('urgent');
+                if (gameState.timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function scheduleSpawn(lo, hi) {
+            if (!gameState.active) return;
+            const delay = Math.random() * (hi - lo) + lo;
+            gameState.spawnTimer = setTimeout(() => {
+                spawnTarget();
+                scheduleSpawn(lo, hi);
+            }, delay);
+        }
+
+        function spawnTarget() {
+            if (!gameState.active) return;
+            const gp  = document.getElementById('gameplayScreen');
+            const pad = 60;
+            const w   = gp.clientWidth  - pad * 2;
+            const h   = gp.clientHeight - pad * 2 - 60; // leave room for HUD
+
+            const size = Math.random() * 30 + 50; // 50-80px
+            const x = Math.random() * (w - size) + pad;
+            const y = Math.random() * (h - size) + pad + 60;
+
+            const color = TARGET_COLORS[Math.floor(Math.random() * TARGET_COLORS.length)];
+
+            const t = document.createElement('div');
+            t.className = 'target';
+            t.style.width  = size + 'px';
+            t.style.height = size + 'px';
+            t.style.left   = x + 'px';
+            t.style.top    = y + 'px';
+            t.style.background = color.bg;
+            t.style.boxShadow  = '0 0 25px ' + color.glow + ', 0 0 10px ' + color.glow;
+            t.setAttribute('onclick', 'hitTarget(this, event)');
+            t._color = color;
+            gp.appendChild(t);
+
+            // Auto-fade after 2 seconds
+            const fadeTimer = setTimeout(() => {
+                if (!t.parentNode) return;
+                t.classList.add('fading');
+                setTimeout(() => { if (t.parentNode) t.remove(); }, 250);
+            }, 2000);
+
+            t._fadeTimer = fadeTimer;
+        }
+
+        function hitTarget(target, e) {
+            if (!gameState.active) return;
+            if (target._hit) return;
+            target._hit = true;
+
+            clearTimeout(target._fadeTimer);
+
+            const rect = target.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top  + rect.height / 2;
+
+            gameState.score += 10;
+            document.getElementById('scoreVal').textContent = gameState.score;
+
+            spawnBurst(cx, cy);
+            spawnScorePop(cx, cy);
+
+            if (gameState.score >= 100) {
+                winGame();
+                return;
+            }
+
+            target.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+            target.style.transform = 'scale(1.4)';
+            target.style.opacity = '0';
+            setTimeout(() => { if (target.parentNode) target.remove(); }, 150);
+        }
+
+        function spawnBurst(x, y) {
+            const gp = document.getElementById('gameplayScreen');
+            const count = 12;
+            for (let i = 0; i < count; i++) {
+                const angle  = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.6;
+                const dist   = Math.random() * 30 + 25;
+                const dx     = Math.cos(angle) * dist;
+                const dy     = Math.sin(angle) * dist;
+                const size   = Math.random() * 5 + 3;
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.width  = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left   = (x - size/2) + 'px';
+                p.style.top    = (y - size/2) + 'px';
+                p.style.background = ['#facc15','#fbbf24','#f59e0b','#fcd34d','#fff'][Math.floor(Math.random()*5)];
+                p.style.setProperty('--dx', dx + 'px');
+                p.style.setProperty('--dy', dy + 'px');
+                p.style.setProperty('--fly-dur', (Math.random() * 0.3 + 0.35) + 's');
+                gp.appendChild(p);
+                setTimeout(() => { if (p.parentNode) p.remove(); }, 600);
+            }
+        }
+
+        function spawnScorePop(x, y) {
+            const gp = document.getElementById('gameplayScreen');
+            const pop = document.createElement('div');
+            pop.className = 'score-pop';
+            pop.textContent = '+10';
+            pop.style.left = (x - 20) + 'px';
+            pop.style.top  = (y - 30) + 'px';
+            gp.appendChild(pop);
+            setTimeout(() => { if (pop.parentNode) pop.remove(); }, 800);
+        }
+
+        function showWinOverlay() {
+            const overlay = document.getElementById('gameoverOverlay');
+            const hasNext = selectedLevel < 3;
+            overlay.innerHTML = `
+                <h2 class="win-title">Level Complete</h2>
+                <div class="final-score win-score">${gameState.score}</div>
+                <div class="final-label">Final Score</div>
+                <div class="gameover-buttons">
+                    <button class="btn-retry" onclick="retryGame()">Play Again</button>
+                    ${hasNext ? `<button class="btn-next" onclick="nextLevel()">Next Level</button>` : ''}
+                    <button class="btn-back-menu" onclick="leaveGame()">Level Select</button>
+                </div>
+            `;
+            overlay.classList.add('active');
+            spawnConfetti();
+        }
+
+        function showLoseOverlay() {
+            const overlay = document.getElementById('gameoverOverlay');
+            overlay.innerHTML = `
+                <h2 class="lose-title">Out of Time</h2>
+                <div class="final-label">Try Again</div>
+                <div class="final-score lose-score">${gameState.score}</div>
+                <div class="gameover-buttons">
+                    <button class="btn-retry" onclick="retryGame()">Play Again</button>
+                    <button class="btn-back-menu" onclick="leaveGame()">Level Select</button>
+                </div>
+            `;
+            overlay.classList.add('active');
+        }
+
+        function spawnConfetti() {
+            const gp = document.getElementById('gameplayScreen');
+            const colors = ['#4ade80','#a3e635','#facc15','#fbbf24','#22d3ee','#c084fc','#f472b6','#fb923c'];
+            for (let i = 0; i < 50; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'confetti';
+                const size = Math.random() * 8 + 4;
+                dot.style.width  = size + 'px';
+                dot.style.height = (Math.random() * 4 + size) + 'px';
+                dot.style.left     = Math.random() * 100 + '%';
+                dot.style.top      = (Math.random() * 60 + 40) + '%';
+                dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+                dot.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                dot.style.setProperty('--cf-dur',   (Math.random() * 2 + 2) + 's');
+                dot.style.setProperty('--cf-delay',  (Math.random() * 0.8) + 's');
+                dot.style.setProperty('--cf-y',      -(Math.random() * 500 + 200) + 'px');
+                dot.style.setProperty('--cf-rot',    (Math.random() * 1080 - 360) + 'deg');
+                gp.appendChild(dot);
+                setTimeout(() => { if (dot.parentNode) dot.remove(); }, 3500);
+            }
+        }
+
+        function endGame() {
+            gameState.active = false;
+            clearTimeout(gameState.spawnTimer);
+            clearInterval(gameState.countdown);
+
+            document.querySelectorAll('#gameplayScreen .target').forEach(t => {
+                t.style.opacity = '0';
+                t.style.transform = 'scale(0.3)';
+                setTimeout(() => { if (t.parentNode) t.remove(); }, 250);
+            });
+
+            if (gameState.score >= 100) {
+                showWinOverlay();
+            } else {
+                showLoseOverlay();
+            }
+        }
+
+        function winGame() {
+            gameState.active = false;
+            clearTimeout(gameState.spawnTimer);
+            clearInterval(gameState.countdown);
+
+            document.querySelectorAll('#gameplayScreen .target').forEach(t => {
+                t.style.opacity = '0';
+                t.style.transform = 'scale(0.3)';
+                setTimeout(() => { if (t.parentNode) t.remove(); }, 250);
+            });
+
+            showWinOverlay();
+        }
+
+        function nextLevel() {
+            const overlay = document.getElementById('gameoverOverlay');
+            overlay.classList.remove('active');
+            overlay.innerHTML = '';
+            document.querySelectorAll('#gameplayScreen .confetti').forEach(el => el.remove());
+
+            selectedLevel++;
+
+            const gp = document.getElementById('gameplayScreen');
+            gp.querySelectorAll('.target,.particle,.score-pop').forEach(el => el.remove());
+            initGame();
+        }
+
+        function leaveGame() {
+            gameState.active = false;
+            clearTimeout(gameState.spawnTimer);
+            clearInterval(gameState.countdown);
+
+            const gp = document.getElementById('gameplayScreen');
+            gp.querySelectorAll('.target,.particle,.score-pop').forEach(el => el.remove());
+            document.getElementById('gameoverOverlay').classList.remove('active');
+            gp.classList.remove('active');
+
+            // Show level select
+            const levelScreen = document.getElementById('levelScreen');
+            levelScreen.classList.add('active');
+            levelScreen.style.animation = 'floatIn 0.5s cubic-bezier(0.22,0.61,0.36,1) forwards';
+
+            // Reset level selection
+            selectedLevel = null;
+            document.querySelectorAll('.level-option').forEach(el => el.classList.remove('selected'));
+            updatePlayButton();
+        }
+
+        function retryGame() {
+            document.getElementById('gameoverOverlay').classList.remove('active');
+            initGame();
+        }
+    </script>
+</body>
+</html>
