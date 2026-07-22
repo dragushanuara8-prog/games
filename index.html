@@ -146,8 +146,8 @@
         }
 
         .char-circle {
-            width: 110px;
-            height: 110px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -156,6 +156,14 @@
             border: 3px solid transparent;
             transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
+        }
+
+        .char-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .char-option:hover .char-circle {
@@ -541,7 +549,10 @@
             position: fixed;
             inset: 0;
             z-index: 10;
-            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            background:
+                linear-gradient(rgba(5, 8, 18, 0.35), rgba(5, 8, 18, 0.5)),
+                url('lucid-origin_A_vast_starfield_space_background_distant_planets_soft_glowing_nebula_colors_dar-0.jpg')
+                center / cover no-repeat;
             display: none;
             cursor: crosshair;
             overflow: hidden;
@@ -786,7 +797,7 @@
             .container   { padding: 32px 22px 30px; }
             .title       { font-size: 1.8rem; }
             .characters  { gap: 18px; }
-            .char-circle { width: 85px; height: 85px; font-size: 2.2rem; }
+            .char-circle { width: 100px; height: 100px; font-size: 2.2rem; }
             .btn-start   { padding: 14px 36px; font-size: 1rem; }
             .levels      { gap: 16px; }
             .level-planet{ width: 95px; height: 95px; }
@@ -810,21 +821,21 @@
         <div class="characters">
             <!-- Explorer -->
             <div class="char-option char-explorer" data-character="explorer" onclick="selectCharacter('explorer')">
-                <div class="char-circle">🧭</div>
+                <div class="char-circle"><img src="lucid-origin_A_friendly_space_explorer_character_full_body_dark_flight_suit_with_a_helmet_tuc-0-removebg-preview.png" alt="Explorer"></div>
                 <div class="char-name">Explorer</div>
                 <div class="char-desc">Fast &amp; curious — maps the unknown</div>
             </div>
 
             <!-- Scout -->
             <div class="char-option char-scout" data-character="scout" onclick="selectCharacter('scout')">
-                <div class="char-circle">🌿</div>
+                <div class="char-circle"><img src="lucid-origin_A_young_space_scout_character_full_body_lightweight_silver_and_orange_space_suit-0.jpg" alt="Scout"></div>
                 <div class="char-name">Scout</div>
                 <div class="char-desc">Agile &amp; sharp — finds hidden stars</div>
             </div>
 
             <!-- Pilot -->
             <div class="char-option char-pilot" data-character="pilot" onclick="selectCharacter('pilot')">
-                <div class="char-circle">🚀</div>
+                <div class="char-circle"><img src="lucid-origin_A_friendly_space_explorer_character_full_body_wearing_a_sleek_astronaut_suit_wit-0.jpg" alt="Pilot"></div>
                 <div class="char-name">Pilot</div>
                 <div class="char-desc">Bold &amp; steady — charts the course</div>
             </div>
